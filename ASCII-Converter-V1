@@ -1,1 +1,94 @@
+from tkinter import *
+from tkinter.ttk import *
+import threading
+import time
 
+#function to covert input to ascii characters
+def texttoascii():
+    char = input.get(1.0, END)
+    chars = list(char)
+    chars.remove('\n')
+    x = ''
+    for item in chars:
+        m = ord(item)
+        v = str(m)
+        if x == '':
+            x = v
+        else:
+            x = x + ' ' + v
+    output.delete(1.0, END)
+    output.insert(END, x)
+
+def asciitotext():
+    char = input.get(1.0, END)
+    chars = char.split(' ')
+    try:
+        chars.remove('\n')
+    except:
+        pass
+    x = ''
+    for item in chars:
+        m = chr(int(item))
+        v = str(m)
+        if x == '':
+            x = v
+        else:
+            x = x + v
+    output.delete(1.0, END)
+    output.insert(END, x)
+
+
+#create loops to make the app function
+#loop checks mode, then transcribes text in the entry widget based on mode
+#time delay is added to prevent computer from lagging
+#variable text is created as empty string as a default setting
+def loopfunction():
+    text = ''
+    while True:
+        if text == input.get(1.0, END):
+            continue
+        else:
+            if mode.get() == 'Text to ASCII':
+                text = input.get(1.0, END)
+                texttoascii()
+            elif mode.get() == 'ASCII to Text':
+                asciitotext()
+        time.sleep(0.1)
+
+#create GUI
+def gui():
+    global root
+    root = Tk()
+    root.geometry('400x400')
+    root.title('ASCII Converter')
+    root.configure(bg='white')
+    logo = PhotoImage(file = 'C:/Users/Thomas/Downloads/asciilogo2.png')
+    root.iconphoto(False, logo)
+
+    global input, mode, output
+    input = Text(root, width=45, height=10)
+    input.configure(bd=3, wrap=WORD)
+    input.grid(row=0, padx=10)
+
+    mode = StringVar(root)
+    mode.set('Text to ASCII')
+
+    dropdownmenu = OptionMenu(root, mode, 'Text to ASCII', 'Text to ASCII', 'ASCII to Text')
+    dropdownmenu.grid(row=1, pady=15)
+
+    output = Text(root, width=45, height=10)
+    output.configure(bd=3, wrap=WORD)
+    output.grid(row=2, padx=10)
+
+    compute_thread.start()
+    root.mainloop()
+
+
+#Create a separate thread for GUI and loop and run both
+def initialize():
+    global compute_thread
+    gui_thread = threading.Thread(target=gui)
+    compute_thread = threading.Thread(target=loopfunction)
+    gui_thread.start()
+
+initialize()

@@ -1,0 +1,59 @@
+from tkinter import *
+import time
+
+root = Tk()
+root.title('ASCII Converter V2')
+
+###
+def getinput():
+    input = e.get("1.0", "end")
+
+def texttoascii():
+    data = str(getinput())
+    asciilist = ''
+    for c in data:
+        print('#')
+        result.delete(1.0, END)
+        x = ord(c)
+        y = str(asciilist) + str(x) + ' '
+        asciilist = y
+        stringascii = str(asciilist)
+        result.insert(1.0, '' + stringascii)
+        print('' + stringascii)
+
+def asciitotext():
+    return
+
+def convert():
+    e.delete(1.0, END)
+    convertmode = clicked.get()
+    if convertmode == 'ASCII To Text':
+        asciitotext()
+    if convertmode == 'Text To ASCII':
+        texttoascii()
+
+title = Label(root, text='ASCII Converter', font='arial', fg='#0047b3')
+title.grid(row=0, column=1, padx=20, pady=10)
+
+global e
+e = Text(root, height=10, width=30)
+e.grid(row=1, column=0, padx=10, pady=20, rowspan=4)
+
+clicked = StringVar(root)
+clicked.set('Text To ASCII')
+
+choosemode = OptionMenu(root, clicked, 'ASCII To Text', 'Text To ASCII')
+choosemode.configure(bg='white')
+choosemode.grid(row=2, column=1)
+
+global result
+result = Text(root, height=10, width=30)
+result.grid(row=1, column=2, padx=10, pady=20, rowspan=4)
+
+convertbutton = Button(root, text='Convert', command=convert)
+convertbutton.configure(bg='white')
+convertbutton.grid(row=3, column=1, pady=10)
+
+
+
+root.mainloop()

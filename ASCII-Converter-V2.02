@@ -1,1 +1,333 @@
+from tkinter import *
+import threading, time, re, sys
 
+# Mach is a boolean to store whether or not the two input fields match
+global match
+match = True
+
+# Clear and clear2 clear the input and output fields of their respective windows
+def clear():
+    output.delete(1.0, END)
+    inputx.delete(1.0, END)
+
+def clear2():
+    input1.delete(1.0, END)
+    input2.delete(1.0, END)
+    outputc.delete(1.0, END)
+
+# startcompare is called by initcompare() and does all of the filtering and comparison work
+# datatofilter/comparedatalist are the ASCII inputs, comparedata/comparedatalist are the values the program compares to
+def startcompare(datatofilter, comparedata):
+    outputc.delete(1.0, END)
+    
+    # Create lists to filter and compare inputs
+    
+    comparedatalist = list(comparedata)
+    filterdatalist = re.split('-| |\n', datatofilter)
+    
+    # Filtering starts here. The main filter attemps to add an integer, to distinguish and remove letters and symbols
+    
+    while ' ' in filterdatalist:
+        filterdatalist.remove(' ')
+    while '' in filterdatalist:
+        filterdatalist.remove('')
+    for index, item in enumerate(filterdatalist):
+        try:
+            x = int(item)
+        except:
+            filterdatalist[int(index)] = '1'
+    
+    # This filter removes '1', which is the new value for all letters and symbols in the ASCII input
+    
+    while any(enumerate(filterdatalist)) == 1:
+        try:
+            filterdatalist.remove('1')
+        except:
+            break
+    
+    # This filter removes all numbers outside commonly used ASCII values
+    
+    for index, item in enumerate(filterdatalist):
+        try:
+            if int(item) > 31 and int(item) < 126:
+                item = ord(chr(int(item)))
+            else:
+                filterdatalist[int(index)] = '1'
+        except ValueError:
+            return
+    
+    while any(enumerate(filterdatalist)) == 1:
+        try:
+            filterdatalist.remove('1')
+        except:
+            break
+    
+    # This is the code to convert from ascii to text in order for comparison to happen. It is joined into a string.
+    
+    def convert(data):
+        global asciilist
+        asciilist = []
+        indexnumber = 0
+        for c in data:
+            asciival = chr(int(c))
+            asciilist.insert(int(indexnumber), asciival)
+            indexnumber = indexnumber + 1
+    convert(filterdatalist)
+    translation = ''.join(asciilist)
+    
+    # This is the code to compare between dataset (the output of the convert() function), and the reference input.
+    # The 'triggered' variable is used to help determine whether or not there is a match
+
+    def compare(dataset, reference):
+        global firsterror
+        firsterror = ''
+        global triggered
+        triggered = False
+        listnumber = 0
+        for c in dataset:
+            try:
+                if c == reference[listnumber]:
+                    print(c + ' matches ' + reference[listnumber])
+                    listnumber = listnumber + 1
+                else:
+                    print(c + ' does not match ' + reference[listnumber])
+                    toinsert = 'Found wrong value: ' + str(c) + ' Correct value: ' + reference[listnumber] + ' (ASCII ' + str(ord(reference[listnumber])) + ')' + '\n'
+                    outputc.insert(END, toinsert)
+                    if triggered == False:
+                        firsterror = listnumber + 1
+                        triggered = True
+                    elif triggered == True:
+                        pass
+                    listnumber = listnumber + 1
+            except IndexError:
+                return
+        listnumber = listnumber - 1
+
+        while True:
+            try:
+                listnumber = listnumber + 1
+                m = reference[listnumber]
+                v = m.split('.')[1]
+                extracharset = 'Unable to find char ' + str(v) + ' in data set' + '\n'
+                outputc.insert(END, extracharset)
+            except IndexError:
+                break
+  
+    compare(translation, comparedata)
+    
+    # This is the function that displays whether or not the inputs/outputs match and where the errors are
+
+    def displayresults(dataset, reference):
+        if dataset == reference:
+            outputc.insert(1.0, 'ASCII and Chars match')
+            outputc.tag_add('start', 1.0, 1.21)
+            outputc.tag_configure('start', foreground='green')
+            outputc.insert(1.21, '\n')
+        else:
+            outputc.insert(1.0, 'ASCII and Chars do not match')
+            outputc.tag_add('start', 1.0, 1.28)
+            outputc.tag_configure('start', foreground='red')
+            outputc.insert(1.28, '\n')
+        outputc.insert(END, 'ASCII Input: ')
+        outputc.insert(END, dataset + '\n')
+        outputc.insert(END, 'Chars Input: ')
+        outputc.insert(END, reference + '\n')
+        print(triggered)
+        if triggered == True:
+            outputc.insert(2.0, 'Initial error occurred at character ')
+            outputc.insert(2.36, str(firsterror) + '\n')
+        else:
+            pass
+
+    displayresults(translation, comparedata)
+
+# These functions are used to determine if there's been any change to the input boxes and if there are, run the above comparison code.
+
+def initcompare():
+    startcompare(input1.get(1.0, END), input2.get())
+
+comparethread = threading.Thread(target=initcompare)
+comparethread.daemon = True
+
+def compareloop():
+    current1 = ''
+    current2 = ''
+    while True:
+        if current1 == input1.get(1.0, END) and current2 == input2.get():
+            current1 = input1.get(1.0, END)
+            current2 = input2.get()
+            time.sleep(0.2)
+        else:
+            try:
+                comparethread.start()
+                current1 = input1.get(1.0, END)
+                current2 = input2.get()
+                time.sleep(0.2)
+            except:
+                initcompare()
+                current1 = input1.get(1.0, END)
+                current2 = input2.get()
+                time.sleep(0.2)
+
+# This function creates the window for the compare function and starts the comparison code on a new thread.
+
+def compare():
+    comparew = Toplevel()
+    comparew.title('ASCII Converter: Compare')
+    comparew.configure(bg='white')
+    comparew.geometry('450x400')
+
+    global input1, input2, outputc
+
+    t2 = Label(comparew, text='ASCII Input:')
+    t2.grid(row=0, column=0)
+    t2.configure(bg='white')
+
+    input1 = Text(comparew, width=53, height=8)
+    input1.configure(bd=3, wrap=WORD)
+    input1.grid(row=1, padx=10)
+
+    cf2 = LabelFrame(comparew)
+    cf2.configure(bg='white', bd=0)
+    cf2.grid(row=2, column=0, columnspan=3)
+
+    l1 = Label(cf2, text='Chars Input:')
+    l1.configure(bg='white')
+    l1.grid(row=1, column=0)
+
+    input2 = Entry(cf2, width=40)
+    input2.configure(bd=2)
+    input2.grid(row=1, column=1, columnspan=2)
+
+    cf = LabelFrame(comparew)
+    cf.configure(bg='white', bd=0)
+    cf.grid(row=3, column=0)
+
+    outputc = Text(comparew, width=53, height=10)
+    outputc.configure(bd=3, wrap=WORD)
+    outputc.grid(row=4, padx=10)
+
+    clearbuttonc = Button(cf, text='Clear', command=clear2)
+    clearbuttonc.grid(row=2, column=0, padx=10, pady=15)
+
+    global compareloopthread
+    compareloopthread = threading.Thread(target=compareloop)
+    compareloopthread.daemon = True
+    compareloopthread.start()
+
+# This function converts ASCII to text in the regular ASCII converter
+
+def convert(inputval):
+    toconvert = inputval
+    if mode.get() == 'Text to ASCII':
+        chars = list(toconvert)
+        try:
+            chars.remove('\n')
+        except:
+            pass
+        x = ''
+        for item in chars:
+            m = ord(item)
+            v = str(m)
+            if x == '':
+                x = v
+            else:
+                x = x + ' ' + v
+        output.delete(1.0, END)
+        output.insert(END, x)
+        time.sleep(0.1)
+    elif mode.get() == 'ASCII to Text':
+        chars = toconvert.split(' ')
+        try:
+            chars.remove('\n')
+        except:
+            pass
+        x = ''
+        for item in chars:
+            try:
+                m = chr(int(item))
+                v = str(m)
+                if x == '':
+                    x = v
+                else:
+                    x = x + v
+            except:
+                if x == '':
+                    x = '?'
+                else:
+                    x = x + '?'
+        output.delete(1.0, END)
+        output.insert(END, x)
+        time.sleep(0.1)
+
+# This loop detecs new inputs and if there are any, run the conversion program.
+
+def eventloop():
+    toconvert = ''
+    currentmode = 'Text to ASCII'
+    while True:
+        if toconvert == inputx.get(1.0, END):
+            if mode.get() == currentmode:
+                time.sleep(0.1)
+                continue
+            else:
+                toconvert = inputx.get(1.0, END)
+                convert(toconvert)
+                time.sleep(0.1)
+        else:
+            toconvert = inputx.get(1.0, END)
+            convert(toconvert)
+            time.sleep(0.1)
+
+# This function creates the GUI for the main window and sets closing protocol.
+
+def gui():
+    root = Tk()
+    root.geometry('400x400')
+    root.title('ASCII Converter')
+    root.configure(bg='white')
+
+    global inputx, mode, output
+    inputx = Text(root, width=45, height=10)
+    inputx.configure(bd=3, wrap=WORD)
+    inputx.grid(row=0, padx=10)
+
+    f = LabelFrame(root)
+    f.configure(bg='white', bd=0)
+    f.grid(row=1, column=0)
+
+    mode = StringVar(root)
+    mode.set('Text to ASCII')
+
+    dropdownmenu = OptionMenu(f, mode, 'Text to ASCII', 'ASCII to Text')
+    dropdownmenu.grid(row=1, column=1, pady=15)
+
+    output = Text(root, width=45, height=10)
+    output.configure(bd=3, wrap=WORD)
+    output.grid(row=2, padx=10)
+
+    clearbutton = Button(f, text='Clear', command=clear)
+    clearbutton.grid(row=1, column=0, padx=10)
+
+    comparebutton = Button(f, text='Compare', command=compare)
+    comparebutton.grid(row=1, column=2, padx=10)
+
+    global process_thread
+    process_thread = threading.Thread(target=eventloop)
+    process_thread.daemon = True
+    process_thread.start()
+
+    def onclosing():
+        sys.exit()
+
+    root.protocol('WM_DELETE_WINDOW', onclosing)
+    root.mainloop()
+
+# This is the function that runs when the program starts. It creates a new thread for the GUI.
+
+def init():
+    global gui_thread
+    gui_thread = threading.Thread(target=gui)
+    gui_thread.start()
+
+init()

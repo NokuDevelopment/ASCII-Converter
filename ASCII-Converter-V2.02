@@ -76,7 +76,7 @@ def startcompare(datatofilter, comparedata):
     translation = ''.join(asciilist)
     
     # This is the code to compare between dataset (the output of the convert() function), and the reference input.
-    # The 'triggered' variable is used to help determine whether or not there is a match
+    # The 'triggered' variable triggers a line of code to save the first character index with an error.
 
     def compare(dataset, reference):
         global firsterror
@@ -323,7 +323,7 @@ def gui():
     root.protocol('WM_DELETE_WINDOW', onclosing)
     root.mainloop()
 
-# This is the function that runs when the program starts. It creates a new thread for the GUI.
+# This is the function that runs when the program starts. It creates a new thread for the GUI which launches all other processes.
 
 def init():
     global gui_thread

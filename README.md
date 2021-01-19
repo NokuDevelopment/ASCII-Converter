@@ -10,8 +10,6 @@ Verson history:
 
 V1.01: Original ASCII Converter program.
 
-V1.02: ASCII Converter using loops instead of a button, as well as a new UI.
-
 V2.01: ASCII Converter with basic comparison program.
 
 V2.02: Contains changes to the comparison program, including the use of a loop as opposed to a button, better filtering methods, clean exit, and UI tweaks.

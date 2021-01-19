@@ -7,6 +7,7 @@ The GUI uses Tkinter.
 The program is multithreaded because of the use of loops.
 
 Verson history:
+
 V1.01: Original ASCII Converter program.
 
 V1.02: ASCII Converter using loops instead of a button, as well as a new UI.

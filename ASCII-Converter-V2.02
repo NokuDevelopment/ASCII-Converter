@@ -1,7 +1,7 @@
 from tkinter import *
 import threading, time, re, sys
 
-# Mach is a boolean to store whether or not the two input fields match
+# Match is a boolean to store whether or not the two input fields match
 global match
 match = True
 

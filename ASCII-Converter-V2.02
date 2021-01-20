@@ -25,95 +25,47 @@ def startcompare(datatofilter, comparedata):
     comparedatalist = list(comparedata)
     filterdatalist = re.split('-| |\n', datatofilter)
     
-    # Filtering starts here. The main filter attemps to add an integer, to distinguish and remove letters and symbols
+    ### v2.03 changes begin here
     
-    while ' ' in filterdatalist:
-        filterdatalist.remove(' ')
-    while '' in filterdatalist:
-        filterdatalist.remove('')
-    for index, item in enumerate(filterdatalist):
-        try:
-            x = int(item)
-        except:
-            filterdatalist[int(index)] = '1'
-    
-    # This filter removes '1', which is the new value for all letters and symbols in the ASCII input
-    
-    while any(enumerate(filterdatalist)) == 1:
-        try:
-            filterdatalist.remove('1')
-        except:
-            break
-    
-    # This filter removes all numbers outside commonly used ASCII values
+    # This is the filter. It keeps numbers between 31 and 126, and will remove everything else.
     
     for index, item in enumerate(filterdatalist):
         try:
             if int(item) > 31 and int(item) < 126:
-                item = ord(chr(int(item)))
+                pass
             else:
-                filterdatalist[int(index)] = '1'
-        except ValueError:
-            return
+                filterdatalist[index] = ''
+        except:
+            filterdatalist[index] = ''
     
-    while any(enumerate(filterdatalist)) == 1:
+    while '' in filterdatalist:
         try:
-            filterdatalist.remove('1')
+            filterdatalist.remove('')
         except:
             break
     
-    # This is the code to convert from ascii to text in order for comparison to happen. It is joined into a string.
-    
-    def convert(data):
-        global asciilist
-        asciilist = []
-        indexnumber = 0
-        for c in data:
-            asciival = chr(int(c))
-            asciilist.insert(int(indexnumber), asciival)
-            indexnumber = indexnumber + 1
-    convert(filterdatalist)
-    translation = ''.join(asciilist)
-    
     # This is the code to compare between dataset (the output of the convert() function), and the reference input.
     # The 'triggered' variable triggers a line of code to save the first character index with an error.
-
+    
     def compare(dataset, reference):
-        global firsterror
-        firsterror = ''
-        global triggered
         triggered = False
-        listnumber = 0
-        for c in dataset:
+        for index, item in enumerate(reference):
             try:
-                if c == reference[listnumber]:
-                    print(c + ' matches ' + reference[listnumber])
-                    listnumber = listnumber + 1
+                if item = chr(int(dataset[index])):
+                    item = chr(int(dataset[index]))
                 else:
-                    print(c + ' does not match ' + reference[listnumber])
-                    toinsert = 'Found wrong value: ' + str(c) + ' Correct value: ' + reference[listnumber] + ' (ASCII ' + str(ord(reference[listnumber])) + ')' + '\n'
+                    toinsert = 'Found wrong value: ' + str(chr(int(item))) + ' Correct value: ' + reference[index] + ' (ASCII ' + str(ord(reference[index])) + ')' + '\n'
                     outputc.insert(END, toinsert)
                     if triggered == False:
-                        firsterror = listnumber + 1
+                        global firsterror
+                        firsterror = index
                         triggered = True
-                    elif triggered == True:
-                        pass
-                    listnumber = listnumber + 1
             except IndexError:
-                return
-        listnumber = listnumber - 1
-
-        while True:
-            try:
-                listnumber = listnumber + 1
-                m = reference[listnumber]
-                v = m.split('.')[1]
-                extracharset = 'Unable to find char ' + str(v) + ' in data set' + '\n'
-                outputc.insert(END, extracharset)
-            except IndexError:
-                break
-  
-    compare(translation, comparedata)
+                toinsert = 'Missing value: ' + reference[index]
+    
+    compare(filterdatalist, comparedatalist)
+    
+    #v2.03 changes end here
     
     # This is the function that displays whether or not the inputs/outputs match and where the errors are
 

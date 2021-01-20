@@ -170,9 +170,8 @@ def compare():
 # This function converts ASCII to text in the regular ASCII converter
 
 def convert(inputval):
-    toconvert = inputval
     if mode.get() == 'Text to ASCII':
-        chars = list(toconvert)
+        chars = list(inputval)
         try:
             chars.remove('\n')
         except:
@@ -189,7 +188,7 @@ def convert(inputval):
         output.insert(END, x)
         time.sleep(0.1)
     elif mode.get() == 'ASCII to Text':
-        chars = toconvert.split(' ')
+        chars = inputval.split(' ')
         try:
             chars.remove('\n')
         except:

@@ -20,52 +20,49 @@ def clear2():
 def startcompare(datatofilter, comparedata):
     outputc.delete(1.0, END)
     
-    # Create lists to filter and compare inputs
-    
-    comparedatalist = list(comparedata)
-    filterdatalist = re.split('-| |\n', datatofilter)
-    
-    ### v2.03 changes begin here
+    ### v2.04 changes begin here
     
     # This is the filter. It keeps numbers between 31 and 126, and will remove everything else.
     
-    for index, item in enumerate(filterdatalist):
-        try:
-            if int(item) > 31 and int(item) < 126:
-                pass
-            else:
-                filterdatalist[index] = ''
-        except:
-            filterdatalist[index] = ''
-    
-    while '' in filterdatalist:
-        try:
-            filterdatalist.remove('')
-        except:
-            break
-    
-    # This is the code to compare between dataset (the output of the convert() function), and the reference input.
-    # The 'triggered' variable triggers a line of code to save the first character index with an error.
-    
-    def compare(dataset, reference):
-        triggered = False
+    def process(data, reference):
+        reference = list(reference)
+        data = re.split('-| |\n', data)
+        for index, item in enumerate(data):
+            try:
+                if int(item) > 32 and int(item) < 126:
+                    asciival = chr(int(item))
+                    data.remove(item)
+                    data.insert(index, asciival)
+                else:
+                    data.remove(item)
+                    data.insert(0, '1')
+            except:
+                data.remove(item)
+                data.insert(0, '1')
+        while '1' in data:
+            try:
+                data.remove('1')
+            except:
+                break
         for index, item in enumerate(reference):
             try:
-                if item = chr(int(dataset[index])):
-                    item = chr(int(dataset[index]))
+                if item == data[index]:
+                    pass
                 else:
-                    toinsert = 'Found wrong value: ' + str(chr(int(item))) + ' Correct value: ' + reference[index] + ' (ASCII ' + str(ord(reference[index])) + ')' + '\n'
+                    message = 'Found wrong value: ' + item + ' Correct valie: ' + reference[index] + ' (ASCII ' + str(ord(reference[index])) + ')' + '\n'
                     outputc.insert(END, toinsert)
                     if triggered == False:
                         global firsterror
                         firsterror = index
                         triggered = True
             except IndexError:
-                toinsert = 'Missing value: ' + reference[index]
+                message = 'Missing value: ' + reference[index]
+        translation = data
     
-    compare(filterdatalist, comparedatalist)
+    process(datatofilter, comparedata)
     
-    #v2.03 changes end here
+    
+    #v2.04 changes end here
     
     # This is the function that displays whether or not the inputs/outputs match and where the errors are
 

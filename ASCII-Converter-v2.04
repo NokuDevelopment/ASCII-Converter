@@ -27,6 +27,7 @@ def startcompare(datatofilter, comparedata):
     def process(data, reference):
         reference = list(reference)
         data = re.split('-| |\n', data)
+		
         for index, item in enumerate(data):
             try:
                 if int(item) > 32 and int(item) < 126:
@@ -39,6 +40,7 @@ def startcompare(datatofilter, comparedata):
             except:
                 data.remove(item)
                 data.insert(0, '1')
+		
         while '1' in data:
             try:
                 data.remove('1')
@@ -165,6 +167,7 @@ def compare():
     compareloopthread.start()
 
 # This function converts ASCII to text in the regular ASCII converter
+# 2.05 changes
 
 def convert(inputval):
     if mode.get() == 'Text to ASCII':
@@ -173,14 +176,9 @@ def convert(inputval):
             chars.remove('\n')
         except:
             pass
-        x = ''
-        for item in chars:
-            m = ord(item)
-            v = str(m)
-            if x == '':
-                x = v
-            else:
-                x = x + ' ' + v
+        for index, item in enumerate(chars):
+            chars[index] = str(ord(item)) + ' '
+        x = ''.join(chars)
         output.delete(1.0, END)
         output.insert(END, x)
         time.sleep(0.1)
@@ -190,23 +188,17 @@ def convert(inputval):
             chars.remove('\n')
         except:
             pass
-        x = ''
-        for item in chars:
+        for index, item in enumerate(chars):
             try:
-                m = chr(int(item))
-                v = str(m)
-                if x == '':
-                    x = v
-                else:
-                    x = x + v
+                chars[index] = chr(int(item))
             except:
-                if x == '':
-                    x = '?'
-                else:
-                    x = x + '?'
+                chars[index] = '?'
+        x = ''.join(chars)
         output.delete(1.0, END)
         output.insert(END, x)
         time.sleep(0.1)
+
+# end of 2.05 changes
 
 # This loop detecs new inputs and if there are any, run the conversion program.
 

@@ -2,74 +2,72 @@ from tkinter import *
 import threading, time, re, sys
 
 # Match is a boolean to store whether or not the two input fields match
-global match
+global match, result, asciidata, triggered, firsterror
 match = True
 
-# Clear and clear2 clear the input and output fields of their respective windows
-def clear():
-    output.delete(1.0, END)
-    inputx.delete(1.0, END)
-
-def clear2():
-    input1.delete(1.0, END)
-    input2.delete(1.0, END)
-    outputc.delete(1.0, END)
-
-# startcompare is called by initcompare() and does all of the filtering and comparison work
-# datatofilter/comparedatalist are the ASCII inputs, comparedata/comparedatalist are the values the program compares to
-def startcompare(datatofilter, comparedata):
-    outputc.delete(1.0, END)
-    
-    ### v2.04 changes begin here
-    
-    # This is the filter. It keeps numbers between 31 and 126, and will remove everything else.
-    
-    def process(data, reference):
-        reference = list(reference)
-        data = re.split('-| |\n', data)
-		
-        for index, item in enumerate(data):
+# Class containing all functions
+class functions:
+    def __init__(self):
+        pass
+    def converttoascii(data):
+        characters = list(data)
+        for index, item in enumerate(characters):
+            characters[index] = str(ord(item)) + ' '
+        result = ''.join(characters)
+    def converttotext(data):
+        characters = data.split(' ')
+        for index, item in enumerate(characters):
+            characters[index] = chr(int(item))
+        result = ''.join(characters)
+    def mainwresults(insert):
+        output.delete(1.0, END)
+        output.insert(1.0, insert)
+    def clearoutputs():
+        output.delete(1.0, END)
+        outputc.delete(1.0, END)
+    def clearall():
+        output.delete(1.0, END)
+        inputx.delete(1.0, END)
+        input1.delete(1.0, END)
+        input2.delete(0, END)
+        outputc.delete(1.0, END)
+    def process(asciiinput):
+        asciidata = re.split('-| |\n', asciiinput)
+        for index, item in enumerate(asciidata):
             try:
                 if int(item) > 32 and int(item) < 126:
                     asciival = chr(int(item))
-                    data.remove(item)
-                    data.insert(index, asciival)
+                    asciidata.remove(item)
+                    asciidata.insert(index, asciival)
                 else:
-                    data.remove(item)
-                    data.insert(0, '1')
+                    asciidata.remove(item)
+                    asciidata.insert(0, '1')
             except:
-                data.remove(item)
-                data.insert(0, '1')
-		
-        while '1' in data:
+                asciidata.remove(item)
+                asciidata.insert(0, '1')
+        while '1' in asciidata:
             try:
-                data.remove('1')
+                asciidata.remove('1')
             except:
                 break
-        for index, item in enumerate(reference):
+        asciidata = ''.join(asciidata)
+    def compare(asciiinput, reference):
+        reference1 = list(reference)
+        for index, item in enumerate(reference1):
             try:
-                if item == data[index]:
+                if item == asciiinput[index]:
                     pass
                 else:
-                    message = 'Found wrong value: ' + item + ' Correct valie: ' + reference[index] + ' (ASCII ' + str(ord(reference[index])) + ')' + '\n'
-                    outputc.insert(END, toinsert)
+                    message = 'Found wrong value: ' + item + ' Correct value: ' + reference1[index] + ' (ASCII ' + str(ord(reference1[index])) + ')' + '\n'
+                    outputc.insert(END, message)
                     if triggered == False:
-                        global firsterror
                         firsterror = index
                         triggered = True
-            except IndexError:
-                message = 'Missing value: ' + reference[index]
-        translation = data
-    
-    process(datatofilter, comparedata)
-    
-    
-    #v2.04 changes end here
-    
-    # This is the function that displays whether or not the inputs/outputs match and where the errors are
-
-    def displayresults(dataset, reference):
-        if dataset == reference:
+            except:
+                message = 'Missing value: ' + reference1[index] +'\n'
+                outputc.insert(END, message)
+    def showresults(asciiinput, reference):
+        if asciiinput == reference:
             outputc.insert(1.0, 'ASCII and Chars match')
             outputc.tag_add('start', 1.0, 1.21)
             outputc.tag_configure('start', foreground='green')
@@ -80,17 +78,24 @@ def startcompare(datatofilter, comparedata):
             outputc.tag_configure('start', foreground='red')
             outputc.insert(1.28, '\n')
         outputc.insert(END, 'ASCII Input: ')
-        outputc.insert(END, dataset + '\n')
+        outputc.insert(END, asciiinput + '\n')
         outputc.insert(END, 'Chars Input: ')
         outputc.insert(END, reference + '\n')
-        print(triggered)
         if triggered == True:
             outputc.insert(2.0, 'Initial error occurred at character ')
-            outputc.insert(2.36, str(firsterror) + '\n')
+            outputc.insert(2.36, firsterror)
         else:
             pass
 
-    displayresults(translation, comparedata)
+# Startcompare processes and compares the data and then displays it. It uses functions from the functions class.
+
+def startcompare(datatofilter, refdata):
+    outputc.delete(1.0, END)
+    
+    functions.process(datatofilter)
+    functions.compare(asciidata, refdata)
+    functions.showresults(asciidata, refdata)
+
 
 # These functions are used to determine if there's been any change to the input boxes and if there are, run the above comparison code.
 
@@ -158,7 +163,7 @@ def compare():
     outputc.configure(bd=3, wrap=WORD)
     outputc.grid(row=4, padx=10)
 
-    clearbuttonc = Button(cf, text='Clear', command=clear2)
+    clearbuttonc = Button(cf, text='Clear', command=functions.clearall)
     clearbuttonc.grid(row=2, column=0, padx=10, pady=15)
 
     global compareloopthread
@@ -171,34 +176,13 @@ def compare():
 
 def convert(inputval):
     if mode.get() == 'Text to ASCII':
-        chars = list(inputval)
-        try:
-            chars.remove('\n')
-        except:
-            pass
-        for index, item in enumerate(chars):
-            chars[index] = str(ord(item)) + ' '
-        x = ''.join(chars)
-        output.delete(1.0, END)
-        output.insert(END, x)
-        time.sleep(0.1)
+    	functions.converttoascii(inputval)
+        functions.mainwresults(result)
+	time.sleep(0.1)
     elif mode.get() == 'ASCII to Text':
-        chars = inputval.split(' ')
-        try:
-            chars.remove('\n')
-        except:
-            pass
-        for index, item in enumerate(chars):
-            try:
-                chars[index] = chr(int(item))
-            except:
-                chars[index] = '?'
-        x = ''.join(chars)
-        output.delete(1.0, END)
-        output.insert(END, x)
-        time.sleep(0.1)
-
-# end of 2.05 changes
+    	functions.converttotext(inputval)
+        functions.mainwresults(result)
+	time.sleep(0.1)
 
 # This loop detecs new inputs and if there are any, run the conversion program.
 
@@ -246,7 +230,7 @@ def gui():
     output.configure(bd=3, wrap=WORD)
     output.grid(row=2, padx=10)
 
-    clearbutton = Button(f, text='Clear', command=clear)
+    clearbutton = Button(f, text='Clear', command=functions.clearall)
     clearbutton.grid(row=1, column=0, padx=10)
 
     comparebutton = Button(f, text='Compare', command=compare)
